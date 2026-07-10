@@ -1,5 +1,7 @@
 # runner-terraform
 
+[![Latest release](https://img.shields.io/github/v/release/fabn/runner-terraform?label=latest)](https://github.com/fabn/runner-terraform/pkgs/container/runner-terraform)
+
 Custom [Spacelift runner image](https://docs.spacelift.io/integrations/docker#customizing-the-runner-image)
 bundling a newer Terraform version, published to
 [`ghcr.io/fabn/runner-terraform`](https://github.com/fabn/runner-terraform/pkgs/container/runner-terraform).
@@ -24,13 +26,19 @@ Point your stack's `runner_image` at a published tag:
 runner_image = "ghcr.io/fabn/runner-terraform:v1.14.8"
 ```
 
+Every available tag is listed on the
+[releases page](https://github.com/fabn/runner-terraform/releases) (one per
+Terraform minor series since 1.6, pointing at its latest patch) and on the
+[package page](https://github.com/fabn/runner-terraform/pkgs/container/runner-terraform).
+
 ## Releasing a new version
 
 Releases are automated: the [Release workflow](.github/workflows/release.yml)
 runs daily, computes the latest stable patch of every Terraform minor series
-since 1.6, tags any version not yet released (`vX.Y.Z`) and dispatches the
-Docker workflow on it. New patches and new minor series are picked up
-automatically; its first run backfills all past series.
+since 1.6, tags any version not yet released (`vX.Y.Z`), dispatches the
+Docker workflow on it and creates a matching GitHub release. New patches and
+new minor series are picked up automatically; its first run backfills all
+past series.
 
 Manual releases still work the same way: push a tag matching the Terraform
 version you want to bundle (with a `v` prefix). The
