@@ -22,12 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - name: Fetch tags
-        # checkout's fetch-tags option doesn't reliably fetch tags on a
-        # shallow checkout, and both steps below must see every existing tag
-        # to stay idempotent (skip already-pushed tags / existing releases).
-        run: git fetch --tags --quiet origin
+        with:
+          # Both steps below must see every existing tag to stay idempotent
+          # (skip already-pushed tags / existing releases). Broken on the
+          # shallow checkout of v4, verified working on v7.
+          fetch-tags: true
 
       - name: Tag missing Terraform versions
         env:
