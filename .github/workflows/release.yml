@@ -14,7 +14,7 @@ on:
 concurrency: release
 
 permissions:
-  contents: write # push the release tags
+  contents: write # push the release tags and create GitHub releases
   actions: write # dispatch the Docker workflow on the new tags
 
 jobs:
@@ -48,4 +48,24 @@ jobs:
             # (GitHub suppresses recursive runs), so dispatch the build
             # explicitly on the new tag ref.
             gh workflow run docker.yml --ref "${tag}"
+          done
+
+      - name: Create missing GitHub releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Every version tag gets a matching GitHub release, so the repo's
+          # releases page lists the available image tags (backfills tags
+          # created before this step existed). Only the newest version is
+          # marked as the latest release, whatever the creation order.
+          newest=$(git tag --list 'v*' | sort -V | tail -n 1)
+          for tag in $(git tag --list 'v*' | sort -V); do
+            if gh release view "${tag}" > /dev/null 2>&1; then
+              continue
+            fi
+            echo "Creating release ${tag}"
+            gh release create "${tag}" --verify-tag \
+              --latest=$([ "${tag}" = "${newest}" ] && echo true || echo false) \
+              --title "${tag}" \
+              --notes "Terraform ${tag#v}, published as \`ghcr.io/${{ github.repository }}:${tag}\`"
           done
