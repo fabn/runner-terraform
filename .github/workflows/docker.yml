@@ -4,6 +4,9 @@ on:
   push:
     tags: ["v*"]
   pull_request:
+  # The Release workflow pushes tags with GITHUB_TOKEN, which never fires the
+  # push trigger above, so it dispatches this workflow on the tag ref instead.
+  workflow_dispatch:
 
 jobs:
   docker:
