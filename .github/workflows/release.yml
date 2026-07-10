@@ -10,6 +10,11 @@ on:
   schedule:
     - cron: "23 6 * * *"
   workflow_dispatch:
+    inputs:
+      republish:
+        description: "Move every existing vX.Y.Z tag to HEAD and rebuild its image from the current recipe"
+        type: boolean
+        default: false
 
 concurrency: release
 
@@ -27,6 +32,21 @@ jobs:
           # (skip already-pushed tags / existing releases). Broken on the
           # shallow checkout of v4, verified working on v7.
           fetch-tags: true
+
+      - name: Republish existing tags from current HEAD
+        if: inputs.republish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The recipe is fully parameterized by TERRAFORM_VERSION, so moving
+          # a tag changes the packaging, never the bundled Terraform version.
+          # Existing GitHub releases follow the tag by name and stay valid.
+          for tag in $(git tag --list 'v*' | sort -V); do
+            echo "Republishing ${tag}"
+            git tag -f "${tag}" > /dev/null
+            git push --force origin "${tag}"
+            gh workflow run docker.yml --ref "${tag}"
+          done
 
       - name: Tag missing Terraform versions
         env:
