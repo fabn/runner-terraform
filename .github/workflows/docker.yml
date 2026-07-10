@@ -1,0 +1,21 @@
+name: Docker
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  docker:
+    uses: fabn/workflows/.github/workflows/docker-build.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      # Tag pushes publish the image, pull requests only smoke-build it.
+      push: ${{ github.ref_type == 'tag' }}
+      # The git tag governs the bundled terraform version: v1.14.8 builds
+      # terraform 1.14.8 (the Dockerfile strips the leading "v") and is
+      # published as ghcr.io/fabn/runner-terraform:v1.14.8. Pull requests
+      # build the Dockerfile default instead.
+      build_args: ${{ github.ref_type == 'tag' && format('TERRAFORM_VERSION={0}', github.ref_name) || '' }}
