@@ -52,3 +52,13 @@ git push origin v1.14.8
 ```
 
 Pull requests run a smoke build (no push). Only `linux/amd64` is built.
+
+## License notice
+
+The image redistributes the Terraform binary, licensed under the
+[Business Source License 1.1](https://github.com/hashicorp/terraform/blob/main/LICENSE);
+a copy of the license ships in the image at
+`/usr/local/share/doc/terraform/LICENSE.txt`. Internal production use is
+covered by the license's Additional Use Grant; offering Terraform to third
+parties as part of a paid product competing with HashiCorp/IBM's offerings is
+not.
