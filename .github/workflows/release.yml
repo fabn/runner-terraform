@@ -1,0 +1,51 @@
+name: Release
+
+# Keeps published images in sync with upstream Terraform releases: for every
+# minor series since 1.6 (the first BUSL release Spacelift can't distribute
+# itself) the latest stable patch gets a vX.Y.Z tag, which the Docker workflow
+# then builds and pushes to ghcr.io. The first run backfills every series;
+# later runs pick up new patches and new minors as they are released.
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+concurrency: release
+
+permissions:
+  contents: write # push the release tags
+  actions: write # dispatch the Docker workflow on the new tags
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Tag missing Terraform versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Latest stable patch of every minor series >= 1.6, oldest first.
+          wanted=$(curl -sSf https://releases.hashicorp.com/terraform/index.json |
+            jq -r '.versions | keys[] | select(test("^\\d+\\.\\d+\\.\\d+$"))' |
+            sort -V |
+            awk -F. '$1 > 1 || ($1 == 1 && $2 >= 6) { latest[$1 "." $2] = $0 } END { for (m in latest) print latest[m] }' |
+            sort -V)
+
+          for version in $wanted; do
+            tag="v${version}"
+            if git rev-parse -q --verify "refs/tags/${tag}" > /dev/null; then
+              continue
+            fi
+            echo "Releasing ${tag}"
+            git tag "${tag}"
+            git push origin "${tag}"
+            # Tags pushed with GITHUB_TOKEN never trigger on-push workflows
+            # (GitHub suppresses recursive runs), so dispatch the build
+            # explicitly on the new tag ref.
+            gh workflow run docker.yml --ref "${tag}"
+          done

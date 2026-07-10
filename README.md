@@ -26,9 +26,16 @@ runner_image = "ghcr.io/fabn/runner-terraform:v1.14.8"
 
 ## Releasing a new version
 
-Push a tag matching the Terraform version you want to bundle (with a `v`
-prefix). The [Docker workflow](.github/workflows/docker.yml) builds the image
-with `TERRAFORM_VERSION` derived from the tag and pushes it to ghcr.io:
+Releases are automated: the [Release workflow](.github/workflows/release.yml)
+runs daily, computes the latest stable patch of every Terraform minor series
+since 1.6, tags any version not yet released (`vX.Y.Z`) and dispatches the
+Docker workflow on it. New patches and new minor series are picked up
+automatically; its first run backfills all past series.
+
+Manual releases still work the same way: push a tag matching the Terraform
+version you want to bundle (with a `v` prefix). The
+[Docker workflow](.github/workflows/docker.yml) builds the image with
+`TERRAFORM_VERSION` derived from the tag and pushes it to ghcr.io:
 
 ```sh
 git tag v1.14.8
