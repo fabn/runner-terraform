@@ -53,6 +53,11 @@ git push origin v1.14.8
 
 Pull requests run a smoke build (no push). Only `linux/amd64` is built.
 
+To rebuild every published tag from the current recipe (e.g. after a
+Dockerfile change), run the Release workflow manually with the `republish`
+input enabled: it moves each `vX.Y.Z` tag to `HEAD` and re-dispatches its
+Docker build, republishing the same image tags.
+
 ## License notice
 
 The image redistributes the Terraform binary, licensed under the
